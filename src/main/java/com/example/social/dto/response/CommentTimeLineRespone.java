@@ -16,6 +16,6 @@ public class CommentTimeLineRespone {
 	private Long postId;
 	private Long userId;
 	private String username;
-	private byte[] avatar;
+	private String avatar;
 	
 }

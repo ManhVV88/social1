@@ -23,5 +23,5 @@ public interface UserService {
 	
 	public ResponseEntity<?> getStatistical(Authentication authentication);
 	
-	public ResponseEntity<?> getAvatar(Authentication authentication);
+	public ResponseEntity<?> getImage(Authentication authentication,String image,String path);
 }

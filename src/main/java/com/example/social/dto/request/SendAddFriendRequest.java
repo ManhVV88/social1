@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SendAddFriendRequest {
-//	@Pattern(regexp = "^[1-9][0-9]*$",message = "value not matching")
-	@Min(1)
+	//@Pattern(regexp = "^[1-9][0-9]*$",message = "toUser must be a valid integer")
+	@Min(value = 1 , message = "toUser must be number and value min is 1")
 	private Long toUser;
 }

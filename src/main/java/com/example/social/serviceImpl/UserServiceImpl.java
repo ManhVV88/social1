@@ -168,9 +168,9 @@ public class UserServiceImpl implements UserService {
 	private PostTimeLineRespone setPostTimeLineRespone(Post post, List<ImageTimeLineRespone> listImageTLRespone,
 			User user, List<CommentTimeLineRespone> listComment) {
 		PostTimeLineRespone postTLRes = new PostTimeLineRespone();
-		byte[] avatarUser = getImageFromFolder(user.getAvatar(), "Avatar");
+//		byte[] avatarUser = getImageFromFolder(user.getAvatar(), "Avatar");
 
-		postTLRes.setAvatar(avatarUser);
+		postTLRes.setAvatar(user.getAvatar());
 		postTLRes.setContent(post.getContent());
 		postTLRes.setCreateDate(post.getCreateDate());
 		postTLRes.setImages(listImageTLRespone);
@@ -216,9 +216,9 @@ public class UserServiceImpl implements UserService {
 
 	private CommentTimeLineRespone setCommentTL(Comment comment) {
 		CommentTimeLineRespone cmTLResponse = new CommentTimeLineRespone();
-		byte[] avatarUser = getImageFromFolder(comment.getUser().getAvatar(), "Avatar");
+		//byte[] avatarUser = getImageFromFolder(comment.getUser().getAvatar(), "Avatar");
 
-		cmTLResponse.setAvatar(avatarUser);
+		cmTLResponse.setAvatar(comment.getUser().getAvatar());
 		cmTLResponse.setComment(comment.getComment());
 		cmTLResponse.setId(comment.getId());
 		cmTLResponse.setPostId(comment.getPost().getId());
@@ -390,16 +390,29 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findByUsername(authentication.getName())
 				.orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
 		Long userId = user.getId();
-
+		
 		User userInvited = userRepository.findById(toUser)
 				.orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+		Long userInvitedId = userInvited.getId();
+		if(userId.equals(userInvitedId)) {
+			return ResponseEntity.badRequest().body(new MessageResponse("You cann't send invitations to yourself"));
+		}
 		// nếu đã tồn tại lời mời trc đó thì không thể gửi tiếp
-		if (friendRepository.existsByUserIdAndUserIdInvited(userId, toUser)) {
-			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(CommonContants.SEND_FAIL_BY_ISEXIST));
+		Friend checkAddFriend = friendRepository.findByUserIdAndUserIdInvited(userId, userInvitedId);
+//		if (friendRepository.existsByUserIdAndUserIdInvited(userId, userInvitedId)) {
+//			return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(CommonContants.SEND_FAIL_BY_ISEXIST));
+//		}
+		if(checkAddFriend != null ) {
+			if(checkAddFriend.getStatusAccept() != CommonContants.HAD_ACCEPT) {
+				return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(CommonContants.SEND_FAIL_BY_ISEXIST));
+			} else {
+				return ResponseEntity.badRequest().body(new MessageResponse(String.format(CommonContants.HAD_FRIEND_MES,
+						userInvited.getUsername())));
+			}
 		}
 
 		// nếu UserA đã gửi lời mời tới UserB, sau đó UserB gửi lời mời tới UserA
-		Friend addFriend = friendRepository.findByUserIdAndUserIdInvited(toUser, userId);
+		Friend addFriend = friendRepository.findByUserIdAndUserIdInvited(userInvitedId, userId);
 		if (addFriend != null) {
 			if (addFriend.getStatusAccept() != CommonContants.HAD_ACCEPT) {
 				addFriend.setStatusAccept(CommonContants.ACCEPT);
@@ -408,12 +421,12 @@ public class UserServiceImpl implements UserService {
 				return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(CommonContants.ACCEPT_MES));
 			} else {
 				return ResponseEntity.badRequest().body(new MessageResponse(String.format(CommonContants.HAD_FRIEND_MES,
-						userRepository.findById(toUser).get().getUsername())));
+						userInvited.getUsername())));
 			}
 		} else {
 			addFriend = new Friend();
 			addFriend.setUserId(userId);
-			addFriend.setUserIdInvited(toUser);
+			addFriend.setUserIdInvited(userInvitedId);
 			addFriend.setUpdateDate(jwtUtils.getDateTimeCurrent());
 			friendRepository.save(addFriend);
 
@@ -618,10 +631,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public ResponseEntity<?> getAvatar(Authentication authentication) {
-		String imageUsername = userRepository.findByUsername(authentication.getName()).get().getAvatar();
-		System.out.println(imageUsername);
-		byte[] avatar = getImageFromFolder(imageUsername, "Avatar");
+	public ResponseEntity<?> getImage(Authentication authentication,String image,String path) {
+	
+		String imageUsername = "";
+		if(image!= null ) {
+			imageUsername =image;
+		}else {
+			imageUsername = userRepository.findByUsername(authentication.getName()).get().getAvatar();
+		}
+		byte[] avatar = getImageFromFolder(imageUsername, path);
 		if (avatar == null) {
 			return ResponseEntity.notFound().build();
 		}

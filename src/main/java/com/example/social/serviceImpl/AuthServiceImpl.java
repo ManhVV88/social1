@@ -85,7 +85,7 @@ public class AuthServiceImpl implements AuthService{
 	 */
 	@Override
 	public ResponseEntity<?> verifyOtp(OtpRequest otpRequest) {
-		String username = otpRequest.getUsername();
+		String username = otpRequest.getUsername().toLowerCase();
 		String otp = otpRequest.getOtp();
 
 		boolean isOtpValid = otpService.validateOTP(username, otp);

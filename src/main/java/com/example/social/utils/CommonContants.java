@@ -21,7 +21,7 @@ public class CommonContants {
 	public static final int ACCEPT = 1 ;
 	public static final String ACCEPT_MES = "u are did accept invite";
 	public static final String IGNORE_MES = "u are did ignore invite";
-	public static final String HAD_FRIEND_MES = "u and %s are friends";
+	public static final String HAD_FRIEND_MES = "You and %s are already friends";
 	public static final String INVITE_NOT_EXIST = "invite not exist";
 	
 	

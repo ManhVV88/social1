@@ -35,7 +35,7 @@ public class OtpGeneratorImpl implements OtpGenerator{
 		int otpNumber = random.nextInt(1000000);
 
 		String otp = String.format("%06d", otpNumber);
-		otpCache.put(key, otp);
+		otpCache.put(key.toLowerCase(), otp);
 
 		return otp;
 	}

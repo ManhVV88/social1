@@ -4,8 +4,10 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +28,6 @@ import com.example.social.dto.request.PostRequest;
 import com.example.social.service.PostService;
 import com.example.social.service.UserService;
 
-//import io.swagger.annotations.ApiParam;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -40,13 +41,11 @@ public class PostController {
 	UserService userService;
 	
 	@PostMapping(value="" ,consumes = {MediaType.MULTIPART_FORM_DATA_VALUE ,MediaType.APPLICATION_JSON_VALUE})
-//	@ApiParam(name = "file", value = "Select the file to Upload", required = false, allowMultiple=true)
 	ResponseEntity<Object> newPost(@RequestPart(value="image",required = false)  MultipartFile[] image, PostRequest postRequest) {		
 		return postService.newPost(SecurityContextHolder.getContext().getAuthentication(),postRequest,image);
 	}
 	
 	@PutMapping(value="/edit/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE,MediaType.APPLICATION_JSON_VALUE})
-//	@ApiParam(name = "file", value = "Select the file to Upload", required = false, allowMultiple=true)
 	ResponseEntity<?> editPost(
 			@PathVariable  @Valid @Min(1) Long id,
 			@Valid PostEditRequest postEditRequest,
@@ -57,8 +56,9 @@ public class PostController {
 	}
 	
 	@DeleteMapping("/{id}")
-	ResponseEntity<?> deletePost(@PathVariable @Valid @Min(1) Long id) {
-		return postService.deletePost(SecurityContextHolder.getContext().getAuthentication(),id);
+	@PreAuthorize("hasRole('ADMIN') or @postService.isPostOwnedByUser(#id, authentication.name)")
+	ResponseEntity<?> deletePost(@PathVariable("id") @Valid @Min(value=1,message="value must be number and min is 1") Long id) {
+		return postService.deletePost(id);
 	}
 		
 	@PostMapping("/like")
@@ -69,5 +69,10 @@ public class PostController {
 	@GetMapping("/home")
 	public ResponseEntity<?> home(@Valid @Min(0) @RequestParam(defaultValue = "0") int page,@Valid @Min(0) @RequestParam(defaultValue = "10") int size) {
 		return userService.home(SecurityContextHolder.getContext().getAuthentication(), page, size);
+	}
+	
+	@GetMapping("/images/{image}")
+	public ResponseEntity<?> getPostImage(@PathVariable(required = false) String image) {		
+		return userService.getImage(SecurityContextHolder.getContext().getAuthentication(),image,"image");
 	}
 }

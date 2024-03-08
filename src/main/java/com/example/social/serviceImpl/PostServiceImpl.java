@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -43,6 +44,7 @@ import com.example.social.utils.JwtUtils;
 
 @Service
 @Transactional
+@Component(value="postService")
 public class PostServiceImpl implements PostService {
 
 	@Autowired
@@ -302,15 +304,20 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public ResponseEntity<?> deletePost(Authentication authentication, Long idPost) {
-		User user = userRepository.findByUsername(authentication.getName())
-				.orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+	public ResponseEntity<?> deletePost( Long idPost) {		
 		if (postRepository.existsById(idPost)) {
-			postRepository.deleteByIdAndUserId(idPost, user.getId());
+			postRepository.deleteById(idPost);
 			return ResponseEntity.status(HttpStatus.OK)
-					.body(new MessageResponse(CommonContants.DEL_COM_SUCCESS));
+					.body(new MessageResponse(CommonContants.DEL_POST_SUCCESS));
 		}
-		return ResponseEntity.badRequest().body(new MessageResponse(CommonContants.DEL_COM_FAIL));
-
+		return ResponseEntity.badRequest().body(new MessageResponse(CommonContants.DEL_POST_FAIL));
+	}
+	
+	@Override
+	public boolean isPostOwnedByUser(Long postId,String username) {
+		User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+		
+		return postRepository.existsByIdAndUserId(postId, user.getId());
 	}
 }

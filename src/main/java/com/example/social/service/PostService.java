@@ -21,5 +21,7 @@ public interface PostService {
 	
 	public ResponseEntity<?> deleteComment(Authentication authentication , Long idComment);
 	
-	public ResponseEntity<?> deletePost(Authentication authentication , Long idPost);
+	public ResponseEntity<?> deletePost(Long idPost);
+	
+	public boolean isPostOwnedByUser(Long postId,String username);
 }

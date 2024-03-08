@@ -46,4 +46,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	Optional<Post> findFirstByOrderByIdDesc();
 	
 	void deleteByIdAndUserId(Long id, Long userId);
+	
+	boolean existsByIdAndUserId(Long id,Long userId);
 }

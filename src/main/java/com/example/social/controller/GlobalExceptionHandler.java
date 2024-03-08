@@ -5,6 +5,7 @@ import javax.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException ex) {
 		BindingResult bindingResult = ex.getBindingResult();
-		String errorMessage = "MethodArgumentNotValidException : ";
+		String errorMessage = "";
 
 		for (FieldError fieldError : bindingResult.getFieldErrors()) {
 			errorMessage += " " + fieldError.getDefaultMessage() + ";";
@@ -45,7 +46,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BindException.class)
 	public ResponseEntity<?> handleValidationException(BindException ex) {
 		BindingResult bindingResult = ex.getBindingResult();
-		String errorMessage = "BindException : ";
+		String errorMessage = "";
 
 		for (FieldError fieldError : bindingResult.getFieldErrors()) {
 			if (fieldError.getDefaultMessage().contains("job")) {
@@ -81,7 +82,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(HttpMessageConversionException.class)
 	@ResponseBody
 	public ResponseEntity<?> handleHttpMessageConversionException(HttpMessageConversionException ex) {
-		return ResponseEntity.badRequest().body(new MessageResponse("can't parse to json type"));
+		return ResponseEntity.badRequest().body(new MessageResponse( ex.getMostSpecificCause().getMessage()));
 	}
 
 	@ExceptionHandler(BadCredentialsException.class)
@@ -102,5 +103,15 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
 	public ResponseEntity<?> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException ex) {
 		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE).body(new MessageResponse(ex.getMessage()));
+	}
+	
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
+	    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse(ex.getMessage()));
+	}
+		
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<?> handleException(Exception ex) {
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse(ex.getMessage()));
 	}
 }

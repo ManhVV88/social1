@@ -18,7 +18,7 @@ public class PostTimeLineRespone {
 	private Long userId;
 	private String content;
 	private Date createDate;
-	private byte[] avatar;
+	private String avatar;
 	private String username;
 	private List<CommentTimeLineRespone> comments = new ArrayList<>();	
 	

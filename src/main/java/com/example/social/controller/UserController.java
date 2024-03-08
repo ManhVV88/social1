@@ -1,5 +1,6 @@
 package com.example.social.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
@@ -31,18 +32,17 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
-	@GetMapping("/info/{username}")
-	public ResponseEntity<?> infoUser(@PathVariable String username) {
-		if(username.isBlank() || username.isEmpty()) {
+	@GetMapping(value = {"/info","/info/{username}"})
+	public ResponseEntity<?> infoUser(@PathVariable(required = false) String username) {
+		if(username == null) {
 			username = SecurityContextHolder.getContext().getAuthentication().getName();
 		}
 		return userService.infoUser(username);
 	}
 
-	@GetMapping("/avatar")
-
-	public ResponseEntity<?> getAvatar() {
-		return userService.getAvatar(SecurityContextHolder.getContext().getAuthentication());
+	@GetMapping(value = {"/avatar","/avatar/{image}"})
+	public ResponseEntity<?> getAvatar(@PathVariable(required = false) String image) {		
+		return userService.getImage(SecurityContextHolder.getContext().getAuthentication(),image,"Avatar");
 	}
 
 	@PostMapping(value = "/update-user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE )	
