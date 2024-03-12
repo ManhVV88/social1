@@ -24,4 +24,8 @@ public interface UserService {
 	public ResponseEntity<?> getStatistical(Authentication authentication);
 	
 	public ResponseEntity<?> getImage(Authentication authentication,String image,String path);
+	
+	public ResponseEntity<?> disableUser(String username);
+	
+	public ResponseEntity<?> enableUser(String username);
 }

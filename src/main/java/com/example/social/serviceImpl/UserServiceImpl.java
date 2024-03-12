@@ -678,4 +678,28 @@ public class UserServiceImpl implements UserService {
 		}
 		return avatarData;
 	}
+
+	@Override
+	public ResponseEntity<?> disableUser(String username) {
+		
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+		
+		user.setEnable(0);
+		
+		userRepository.save(user);
+		
+		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("disable user succes"));
+	}
+	
+	@Override
+	public ResponseEntity<?> enableUser(String username) {
+		
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+		
+		user.setEnable(1);
+		
+		userRepository.save(user);
+		
+		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("enable user succes"));
+	}
 }

@@ -1,6 +1,5 @@
 package com.example.social.controller;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
