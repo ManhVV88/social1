@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,9 @@ public class AuthServiceImpl implements AuthService{
 	@Autowired
 	UserDetailsServiceImpl userDetailsServiceImpl;
 
+	
+	@Autowired
+    private HttpServletRequest request;
 	/**
 	 * 
 	 * @param user
@@ -163,8 +167,11 @@ public class AuthServiceImpl implements AuthService{
 				//new PasswordResetToken(token, user);
 		passwordTokenRepository.save(myToken);
 
+		String baseUrl = request.getRequestURL().toString().replace("forgotpassword", request.getContextPath());
+		
 		Map<String, Object> response = new HashMap<>();
-		response.put("tokenReset", "http://localhost:8080/api/v1/auth/changpassword/"+token);
+		
+		response.put("tokenReset", baseUrl+"changpassword/"+token);
 		return ResponseEntity.ok(response);
 	}
 
