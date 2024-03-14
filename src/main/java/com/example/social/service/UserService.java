@@ -28,4 +28,6 @@ public interface UserService {
 	public ResponseEntity<?> disableUser(String username);
 	
 	public ResponseEntity<?> enableUser(String username);
+	
+	public ResponseEntity<?> updateRole(Long userId , Long roleId,Authentication authentication);
 }

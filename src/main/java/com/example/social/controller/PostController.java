@@ -55,7 +55,7 @@ public class PostController {
 	}
 	
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN') or @postService.isPostOwnedByUser(#id, authentication.name)")
+	@PreAuthorize("hasRole('ADMIN') or @checkAuthorize.isPostOwnedByUser(#id, authentication.name)")
 	ResponseEntity<?> deletePost(@PathVariable("id") @Valid @Min(value=1,message="value must be number and min is 1") Long id) {
 		return postService.deletePost(id);
 	}

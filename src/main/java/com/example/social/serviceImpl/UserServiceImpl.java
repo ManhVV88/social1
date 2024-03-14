@@ -15,7 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.transaction.Transactional;
@@ -50,12 +52,14 @@ import com.example.social.entity.Friend;
 import com.example.social.entity.Image;
 import com.example.social.entity.Job;
 import com.example.social.entity.Post;
+import com.example.social.entity.Role;
 import com.example.social.entity.User;
 import com.example.social.repository.CommentRepository;
 import com.example.social.repository.FriendRepository;
 import com.example.social.repository.JobRepository;
 import com.example.social.repository.LikeRepository;
 import com.example.social.repository.PostRepository;
+import com.example.social.repository.RoleRepository;
 import com.example.social.repository.UserRepository;
 import com.example.social.service.FileService;
 import com.example.social.service.UserService;
@@ -86,6 +90,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	LikeRepository likeRepository;
 
+	@Autowired
+	RoleRepository roleRepository;
+	
 	@Autowired
 	JwtUtils jwtUtils;
 
@@ -688,7 +695,7 @@ public class UserServiceImpl implements UserService {
 		
 		userRepository.save(user);
 		
-		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("disable user succes"));
+		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Disable user succes"));
 	}
 	
 	@Override
@@ -700,6 +707,50 @@ public class UserServiceImpl implements UserService {
 		
 		userRepository.save(user);
 		
-		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("enable user succes"));
+		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Enable user succes"));
+	}
+
+	@Override
+	public ResponseEntity<?> updateRole(Long userId ,Long roleId,Authentication authentication) {
+		if(!userRepository.existsById(userId)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("User not exist"));
+		}
+		
+		if(!roleRepository.existsById(roleId)) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Role not exist"));
+		}
+		
+		if(!checkRole(userId,roleId,authentication)) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("You do not have sufficient rights to update permissions(or this role) for this user"));
+		}
+		
+		Role roleUpdated = roleRepository.getById(roleId);
+		
+		User user = userRepository.getById(userId);
+		Set<Role> roles = new HashSet<>();
+		roles = user.getRoles();
+		if(roles.stream().noneMatch(role -> role.equals(roleUpdated))) {
+			roles.add(roleUpdated);
+		}
+		user.setRoles(roles);
+		return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Update role success"));
+	}
+	
+	private boolean checkRole(Long userId , Long roleId, Authentication authentication) {
+		
+		Role role = roleRepository.findById(roleId).orElseThrow(() -> new RuntimeException("Error: role not exist"));
+		
+		User userUpdated = userRepository.getById(userId);
+		int levelOfUserUpdated =  userUpdated.getRoles().stream().mapToInt(Role::getLevel).max().orElseThrow(()-> new RuntimeException("Error: role not exist"));
+		
+		User currentUser = userRepository.findByUsername(authentication.getName())
+				.orElseThrow(() -> new RuntimeException(CommonContants.E_USER_NOT_FOUND));
+		int levelOfCurrentUser = currentUser.getRoles().stream().mapToInt(Role::getLevel).max().orElseThrow(()-> new RuntimeException("Error: role not exist"));
+		
+		if(levelOfCurrentUser <= role.getLevel() || levelOfCurrentUser <= levelOfUserUpdated) {
+			return false;
+		}
+		
+		return true;
 	}
 }

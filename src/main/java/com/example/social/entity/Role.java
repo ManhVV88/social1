@@ -27,4 +27,6 @@ public class Role {
 	@Column(name = "ROLE_NAME",length = 20)
 	private ERole roleName;
 
+	@Column(name = "ROLE_LEVEL")
+	private int level;
 }
